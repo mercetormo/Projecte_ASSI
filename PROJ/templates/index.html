@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8">
+    <title>Sistema IoT - Grup 8</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+
+  <body>
+
+    <h1>Sistema IoT - Grup 8</h1>
+
+    <div class="card">
+      <h2>Login</h2>
+
+      <input id="user" placeholder="Usuari"><br>
+      <input id="pwd" type="password" placeholder="Contrasenya"><br>
+
+      <button onclick="login()">Entrar</button>
+
+      <p><a href="/register">Registrar-se com a viewer</a></p>
+
+      <p id="feedback" class="feedback"></p>
+    </div>
+
+    <script>
+
+      async function login() {
+
+	  try {
+
+              const nom = document.getElementById("user").value.trim();
+              const pwd = document.getElementById("pwd").value;
+
+              const res = await fetch("/api/login", {
+		  method: "POST",
+		  headers: { "Content-Type": "application/json" },
+		  body: JSON.stringify({
+                      username: nom,
+                      password: pwd
+		  })
+              });
+
+              const data = await res.json();
+
+              if (res.status === 200) {
+
+		  // Guardem nom i rol al localStorage nomes per a la UI.
+		  // L'autenticacio real la fa la cookie de sessio de Flask.
+		  localStorage.setItem("username", nom);
+		  localStorage.setItem("rol", data.rol);
+
+		  if (data.rol === "admin") {
+                      window.location.href = "/admin";
+		  } else {
+                      window.location.href = "/viewer";
+		  }
+
+              } else {
+		  mostrarFeedback(data.error || "Error de login");
+              }
+
+	  } catch (e) {
+              mostrarFeedback("Error de connexió amb el servidor");
+	  }
+      }
+
+      function mostrarFeedback(msg) {
+
+	  let f = document.getElementById("feedback");
+
+	  f.innerText = msg;
+	  f.style.opacity = "1";
+
+	  setTimeout(() => {
+              f.style.opacity = "0";
+	  }, 3000);
+      }
+
+    </script>
+
+  </body>
+</html>

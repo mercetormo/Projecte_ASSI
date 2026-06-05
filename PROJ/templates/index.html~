@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Controlo Sistema</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Sistema IoT - Controlo</h1>
+
+<!-- LOGIN -->
+<div class="card">
+    <h2>Login</h2>
+    <input id="user" placeholder="Utilizador"><br>
+    <input id="pwd" type="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- CONTROLO -->
+<div class="card">
+    <h2 id="estado">Estado LED: ---</h2>
+
+    <button id="btnOn" onclick="ligar()" disabled>Ligar</button>
+    <button id="btnOff" onclick="desligar()" disabled>Desligar</button>
+
+    <h3 id="sensor">Sensor: ---</h3>
+
+    <p id="feedback" class="feedback"></p>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

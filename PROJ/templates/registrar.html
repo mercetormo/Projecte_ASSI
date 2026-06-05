@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8">
+    <title>Registre - Grup 8</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+
+  <body>
+
+    <h1>Registre d'usuari</h1>
+
+    <div class="card">
+
+      <h2>Nou viewer</h2>
+
+      <p>
+        Crea un compte de tipus <em>viewer</em>
+        per consultar l'estat dels dispositius.
+      </p>
+
+      <input id="user"
+             placeholder="Nom d'usuari (4-16 car.)"
+             pattern="[A-Za-z0-9_]{4,16}">
+      <br>
+
+      <input id="pwd"
+             type="password"
+             placeholder="Contrasenya (min 8)">
+      <br>
+
+      <input id="pwd2"
+             type="password"
+             placeholder="Confirma contrasenya">
+      <br>
+
+      <button onclick="registrar()">Registrar</button>
+
+      <p>
+        <a href="/">Tornar al login</a>
+      </p>
+
+      <p id="feedback" class="feedback"></p>
+
+    </div>
+
+    <script>
+
+      async function registrar() {
+
+	  const user = document.getElementById("user").value.trim();
+	  const pwd  = document.getElementById("pwd").value;
+	  const pwd2 = document.getElementById("pwd2").value;
+
+	  if (!/^[A-Za-z0-9_]{4,16}$/.test(user)) {
+              mostrarFeedback("Nom d'usuari no vàlid (4-16 caràcters)");
+              return;
+	  }
+
+	  if (pwd.length < 8) {
+              mostrarFeedback("Contrasenya massa curta (min 8)");
+              return;
+	  }
+
+	  if (pwd !== pwd2) {
+              mostrarFeedback("Les contrasenyes no coincideixen");
+              return;
+	  }
+
+	  try {
+
+              const res = await fetch("/api/register", {
+		  method: "POST",
+		  headers: { "Content-Type": "application/json" },
+		  body: JSON.stringify({
+                      username: user,
+                      password: pwd
+		  })
+              });
+
+              const data = await res.json().catch(() => ({}));
+
+              if (res.status === 201) {
+
+		  mostrarFeedback("Registre OK. Pots iniciar sessió.");
+
+		  setTimeout(() => {
+                      window.location.href = "/";
+		  }, 1500);
+
+              } else if (res.status === 409) {
+
+		  mostrarFeedback("L'usuari ja existeix");
+
+              } else {
+
+		  mostrarFeedback(data.error || "Error en el registre");
+              }
+
+	  } catch (e) {
+              mostrarFeedback("Error de connexió");
+	  }
+      }
+
+      function mostrarFeedback(msg) {
+
+	  let f = document.getElementById("feedback");
+
+	  f.innerText = msg;
+	  f.style.opacity = "1";
+
+	  setTimeout(() => {
+              f.style.opacity = "0";
+	  }, 3000);
+      }
+
+    </script>
+
+  </body>
+</html>

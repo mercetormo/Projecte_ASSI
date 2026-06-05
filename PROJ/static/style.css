@@ -1,0 +1,146 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    text-align: center;
+    background-color: #cfe1ff;
+    margin: 0;
+    display: flex;
+    flex-direction: column;   
+    justify-content: center;  
+    align-items: center;      
+
+    height: 100vh;
+}
+
+.card {
+    background-color: #ffffff;
+    padding: 25px;
+    margin: 40px auto;
+    width: 320px;
+    border-radius: 12px;
+    border: 1px solid #c3d4f7;
+    box-shadow: 0 6px 16px rgba(0, 60, 150, 0.12);
+}
+
+input {
+    margin: 6px 0;
+    padding: 10px;
+    width: 85%;
+    border: 1px solid #aac4ff;
+    border-radius: 6px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #3366cc;
+    box-shadow: 0 0 5px rgba(51, 102, 204, 0.3);
+}
+
+button {
+    margin: 12px;
+    padding: 10px;
+    font-size: 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: #3366cc;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover:enabled {
+    background-color: #254a99;
+    transform: scale(1.03);
+}
+
+
+button:disabled {
+    background-color: #aabbdc;
+    cursor: not-allowed;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.feedback {
+    margin-top: 12px;
+    color: #3366cc;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.feedback.show {
+    opacity: 1;
+}
+
+
+#taula-historic {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+#taula-historic th {
+    background-color: #3366cc;
+    color: white;
+    padding: 12px;
+    font-size: 14px;
+}
+
+#taula-historic td {
+    padding: 10px;
+    border-bottom: 1px solid #d5e2ff;
+    font-size: 14px;
+}
+
+#taula-historic tbody tr:nth-child(even) {
+    background-color: #f3f7ff;
+}
+
+#taula-historic tbody tr:hover {
+    background-color: #e6efff;
+}
+
+#taula-historic td:first-child {
+    color: #254a99;
+    font-weight: 500;
+}
+
+#taula-historic td:last-child {
+    font-weight: bold;
+}
+
+body {
+    overflow-y: auto;
+}
+
+#taula-historic {
+    display: block;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#taula-historic thead,
+#taula-historic tbody,
+#taula-historic tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+
+body {
+    justify-content: flex-start;
+    height: auto;
+    min-height: 100vh;
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
+
+#taula-historic {
+    max-height: 260px;
+    overflow-y: auto;
+}

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Panell admin - Grup 8</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <h1>Panell d'administrador</h1>
+
+    <p style="text-align:center">
+        Usuari: <strong id="user-label">---</strong>
+        | <a href="#" onclick="logout()">Tancar sessió</a>
+    </p>
+
+    <div class="card">
+        <h2 id="estado">Estat LED: ---</h2>
+
+        <button id="btnOn" onclick="canviar(true)">Encendre</button>
+        <button id="btnOff" onclick="canviar(false)">Apagar</button>
+
+        <h3 id="sensor">Sensor: ---</h3>
+        <h3 id="registre">Registre sensor: ---</h3>
+
+        <button id="btnRegistre" onclick="canviarRegistre()">
+            Activar/Desactivar registre
+        </button>
+
+        <p id="feedback" class="feedback"></p>
+    </div>
+
+    <div class="card" style="width:90%; max-width:600px">
+        <h2>Històric</h2>
+
+        <button onclick="carregarHistoric('actuador')">
+            Històric actuador
+        </button>
+
+        <button onclick="carregarHistoric('sensor')">
+            Històric sensor
+        </button>
+
+        <table id="taula-historic">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Usuari</th>
+                    <th>Valor/Estat</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+
+        // Comprovacio basica del rol via localStorage.
+        // L'auth real es la cookie de sessio.
+        if (localStorage.getItem("rol") !== "admin") {
+            window.location.href = "/";
+        }
+
+        let registreActiu = false;
+
+        document.getElementById("user-label").innerText =
+            localStorage.getItem("username") || "---";
+
+        async function actualitzar() {
+            try {
+
+                // ---- Sensor ----
+                const rs = await fetch("/api/sensor");
+
+                if (rs.status === 401) {
+                    localStorage.clear();
+                    window.location.href = "/";
+                    return;
+                }
+
+                if (rs.ok) {
+                    const ds = await rs.json();
+
+                    document.getElementById("sensor").innerText =
+                        "Sensor: " + ds.value;
+                }
+
+                // ---- Actuador ----
+                const ra = await fetch("/api/actuator");
+
+                if (ra.ok) {
+                    const da = await ra.json();
+
+                    document.getElementById("estado").innerText =
+                        "Estat LED: " + (da.state ? "Encès" : "Apagat");
+                }
+
+                // ---- Registre sensor ----
+                const rr = await fetch("/api/sensor/registre");
+
+                if (rr.ok) {
+                    const dr = await rr.json();
+
+                    registreActiu = dr.estat_registre;
+
+                    document.getElementById("registre").innerText =
+                        "Registre sensor: " +
+                        (registreActiu ? "Actiu" : "Aturat");
+                }
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function canviar(estat) {
+            try {
+                const res = await fetch("/api/actuator", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    // NOTA: NO enviem username.
+                    // El Flask agafa de session.
+                    body: JSON.stringify({
+                        state: estat
+                    })
+                });
+
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = "/";
+                    return;
+                }
+
+                if (res.status === 403) {
+                    mostrarFeedback(
+                        "Només l'admin pot canviar l'actuador"
+                    );
+                    return;
+                }
+
+                if (!res.ok) {
+                    mostrarFeedback(
+                        "Error en canviar l'actuador"
+                    );
+                    return;
+                }
+
+                mostrarFeedback(
+                    estat ? "LED encès" : "LED apagat"
+                );
+
+                actualitzar();
+
+            } catch (e) {
+                mostrarFeedback("Error de connexió");
+            }
+        }
+
+        async function canviarRegistre() {
+            try {
+                const res = await fetch("/api/sensor/registre", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        estat_registre: !registreActiu
+                    })
+                });
+
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = "/";
+                    return;
+                }
+
+                if (res.status === 403) {
+                    mostrarFeedback(
+                        "Només l'admin pot canviar el registre"
+                    );
+                    return;
+                }
+
+                if (!res.ok) {
+                    mostrarFeedback(
+                        "Error en canviar el registre"
+                    );
+                    return;
+                }
+
+                const d = await res.json();
+
+                registreActiu = d.estat_registre;
+
+                mostrarFeedback(
+                    registreActiu
+                        ? "Registre activat"
+                        : "Registre aturat"
+                );
+
+                actualitzar();
+
+            } catch (e) {
+                mostrarFeedback("Error de connexió");
+            }
+        }
+
+        async function carregarHistoric(tipus) {
+            try {
+                // NOTA: NO enviem username.
+                // El Flask agafa de session si cal.
+                const res = await fetch(
+                    `/api/historic?tipus=${tipus}`
+                );
+
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = "/";
+                    return;
+                }
+
+                if (!res.ok) {
+                    mostrarFeedback(
+                        "Error carregant l'històric"
+                    );
+                    return;
+                }
+
+                const data = await res.json();
+
+                let tbody =
+                    document.querySelector(
+                        "#taula-historic tbody"
+                    );
+
+                tbody.innerHTML = "";
+
+                data.forEach(r => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${r.data}</td>
+                            <td>${r.nom_usuari || "-"}</td>
+                            <td>${r.valor_estat}</td>
+                        </tr>
+                    `;
+                });
+
+            } catch (e) {
+                mostrarFeedback("Error de connexió");
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch("/api/logout", {
+                    method: "POST"
+                });
+            } finally {
+                localStorage.clear();
+                window.location.href = "/";
+            }
+        }
+
+        function mostrarFeedback(msg) {
+            let f = document.getElementById("feedback");
+
+            f.innerText = msg;
+            f.style.opacity = "1";
+
+            setTimeout(() => {
+                f.style.opacity = "0";
+            }, 3000);
+        }
+
+        actualitzar();
+        setInterval(actualitzar, 2000);
+
+    </script>
+
+</body>
+</html>
